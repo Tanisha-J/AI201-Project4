@@ -22,6 +22,8 @@ A scenario carries **either** of these:
               because you cannot express "the field is missing" as a string.
 """
 
+from pathlib import Path
+
 SCENARIOS_NOTE = """
 Where the texts come from:
   MY_WRITING     — pieces Tanisha wrote herself, no AI help (criterion 1, and
@@ -34,8 +36,11 @@ Criterion 4 (appeals) and the blocking half of criterion 5 need more than one
 request in a row, so they're run by eval_extra.py instead of from here.
 """
 
+# Ten pieces, from five things Tanisha wrote (Inside Out essay split into its
+# five sections, minus the quoted film dialogue; Girls Who Code essay in two).
 MY_WRITING = [
-    "REPLACE ME with a paragraph you wrote yourself.",
+    p.read_text(encoding="utf-8").strip()
+    for p in sorted((Path(__file__).parent / "eval_texts" / "my_writing").glob("*.txt"))
 ]
 
 CLEARLY_AI = [
