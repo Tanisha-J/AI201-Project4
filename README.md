@@ -34,6 +34,16 @@
 
 <!-- ═══════════════════════ UNIT 7 — THE BUILD ═══════════════════════ -->
 
+## Stretch Features
+
+- **`GET /content/<id>`** — returns one item's current status (`decided` or
+  `under_review`), its original decision, and any appeals. It reads
+  `logs/audit.jsonl` through `audit.entries_for`, so the status is whatever
+  the most recent log entry for that id says. Unknown ids return a 404.
+  Lives in `app.py::get_content`.
+
+---
+
 ## What This Does
 
 <!-- The path a submission takes, from arriving to the label a reader sees.

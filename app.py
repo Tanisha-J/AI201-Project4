@@ -21,6 +21,7 @@ Routes:
     POST /submit      ← YOU BUILD THIS (Milestone 3, 4, 5)
     POST /appeal      ← YOU BUILD THIS (Milestone 5)
     GET  /log         the audit log. Already works
+    GET  /content/<id>  one item's current status (stretch)
     GET  /health      is the service up, and is the model loaded
 """
 
@@ -240,6 +241,50 @@ def appeal():
         "message": "POST /appeal isn't built yet — see the TODO in app.py.",
         "you_sent": payload,
     }), 501
+
+
+# ── Stretch: one item's current status ────────────────────────────────────────
+
+@app.get("/content/<content_id>")
+def get_content(content_id):
+    """
+    One item's current status, read back from the audit log.
+
+        curl http://127.0.0.1:5000/content/<content_id>
+
+    The log is append-only, so nothing is ever overwritten. The original
+    decision is the first entry for this id; the current status is whatever
+    the most recent entry says — `decided` until an appeal moves it to
+    `under_review`.
+    """
+    entries = audit.entries_for(content_id)
+    if not entries:
+        return jsonify({
+            "error": "not_found",
+            "message": f"No submission with content_id '{content_id}'.",
+        }), 404
+
+    decision = next((e for e in entries if not e.get("event")), entries[0])
+    appeals = [e for e in entries if e.get("event") == "appeal"]
+
+    return jsonify({
+        "content_id": content_id,
+        "creator_id": decision.get("creator_id"),
+        "status": entries[-1].get("status"),
+        "submitted_at": decision.get("timestamp"),
+        "updated_at": entries[-1].get("timestamp"),
+        "decision": {
+            "guess": decision.get("guess"),
+            "confidence": decision.get("combined_score"),
+            "label": decision.get("label"),
+            "model_score": decision.get("model_score"),
+            "style_score": decision.get("style_score"),
+        },
+        "appeals": [
+            {"timestamp": a.get("timestamp"), "reasoning": a.get("reasoning")}
+            for a in appeals
+        ],
+    })
 
 
 # ── Already works ─────────────────────────────────────────────────────────────
