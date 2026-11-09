@@ -267,24 +267,30 @@ I used Claude (Claude Code) throughout this unit.
 
 ## Rate Limiting
 
-**My limits:** ___ per minute, ___ per day
+**My limits:** 5 per minute, 40 per day (per `creator_id`), set in `config.py` and applied to `POST /submit` with `@limiter.limit(...)` in `app.py`.
 
 **Why those numbers and not others:**
-<!-- Think about two people: a real writer submitting their own work a few
-     times an hour, and a script sending a thousand variations to map your
-     thresholds. Your numbers have to be liveable for the first and hostile to
-     the second. -->
+- **A real writer** submits their own work a few times an hour at most. They might resubmit a piece two or three times in quick succession after fixing a typo, so 5 a minute never gets in their way. 40 a day covers even a heavy editing day, about a piece every 20 minutes for a full working day.
+- **A script mapping my thresholds** needs hundreds or thousands of small variations of a text to find where the labels flip. At 40 a day per creator that would take weeks, and the burst limit of 5 a minute stops it from getting even a quick sample.
+- I didn't go lower (e.g. 2 a minute) because a writer fixing and resubmitting would hit it. I didn't go higher (e.g. the starter's 10 / 200) because 200 a day is enough to map a threshold in an afternoon.
 
-**What a caller counts as:** <!-- per address, or per creator_id? They fail
-differently — one script can look like a thousand callers, and one household
-can look like one. -->
+**What a caller counts as:** The `creator_id` in the request body, falling back to the caller's address when there isn't a usable one (`app.py::rate_limit_key`). This means one household or classroom sharing an address doesn't share a limit. The weakness is that the `creator_id` is self-reported: a script can make up a new one for every request and never get limited. Stopping that needs real accounts, or a second limit per address on top of this one.
+
+My own route adds one more limit for criterion 5: after 3 bad inputs from the same `creator_id` within 10 minutes, the next submission gets a `429` with `"error": "blocked"` explaining why. Both kinds of 429 are written to the audit log as `rejected` entries.
 
 **The run of status codes when I pushed past it:**
 
-<!-- python run_attacks.py --flood 15 -->
+```
+$ python run_attacks.py --flood 15
+200 200 200 200 200 429 429 429 429 429 429 429 429 429 429
 
+10 of 15 were rate limited.
 ```
 
+The log entry each rejection left:
+
+```json
+{"timestamp": "2026-11-09T21:17:53+00:00", "creator_id": "flood_tester", "event": "rejected", "status": "rejected", "reason": "rate_limited", "limit": "5 per 1 minute"}
 ```
 
 ---
