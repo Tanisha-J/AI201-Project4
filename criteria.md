@@ -42,63 +42,43 @@ Two things worth knowing before you pick numbers:
   a **miss**.
 
 ---
-## 1.
+## 1. False positives on my own writing
 
-<!-- Your criterion. It must name a number. -->
+Of 10 pieces I wrote myself, at most 1 gets the high-confidence AI label, in every one of three runs.
 
-
-
-**Why this target:**
-
-
+**Why this target:** I want the number to be low because I don't want real writers to be misidentified. Their work could be as good as an AI's if they are highly skilled in their area of expertise.
 
 ---
 
-## 2.
+## 2. Score spread
 
-<!-- Your criterion. -->
+The average score of 5 clearly-AI pieces is at least 0.25 higher than the average score of 5 clearly-human pieces.
 
-
-
-**Why this target:**
-
-
+**Why this target:** A big gap matters because it shows pieces are being categorized for a real reason rather than just a guess.
 
 ---
 
-## 3.
+## 3. Borderline pieces land in "unsure"
 
-<!-- Your criterion. -->
+Of 5 pieces I judge borderline, at least 4 land in the unsure label.
 
-
-
-**Why this target:**
-
-
+**Why this target:** This ensures that not everything is categorized as human or AI, and shows that the AI isn't 100% right and shouldn't always be depended on for the full truth.
 
 ---
 
-## 4.
+## 4. The appeal path
 
-<!-- Your criterion. -->
+5 of 5 appeals on real content_ids change the status to `under_review` and appear in `GET /log`. An appeal with a fake content_id returns 404.
 
-
-
-**Why this target:**
-
-
+**Why this target:** No one should be wrongly accused, and if they are, they should know whether the appeal worked or not.
 
 ---
 
-## 5.
+## 5. Bad input
 
-<!-- Your criterion. -->
+Sending missing text, empty text, whitespace-only text, and text over 10,000 characters each returns a 400 with an error message, never a 500 crash, in 4 of 4 cases. After 3 bad inputs from the same `creator_id`, the next submission is blocked with a clear message explaining why, instead of being processed.
 
-
-
-**Why this target:**
-
-
+**Why this target:** I want the service to keep working for everyone. After too many bad inputs, the person should be stopped and told why, so they understand what's wrong instead of seeing a crash.
 
 ---
 
