@@ -52,11 +52,17 @@ def combine_signals(model_score: float, style_score: float) -> float:
     The weights in config.py are placeholders. Change them, or ignore them and
     write a different rule.
     """
-    # TODO: replace this
-    return (
+    # The rule: a weighted average, plus one rule about disagreement. If the
+    # two signals are more than DISAGREEMENT_GAP apart, two methods are telling
+    # different stories, and that IS uncertainty — so the score is held inside
+    # the unsure band rather than allowed to reach either confident label.
+    score = (
         config.WEIGHT_MODEL_SIGNAL * model_score
         + config.WEIGHT_STYLE_SIGNAL * style_score
     )
+    if abs(model_score - style_score) > config.DISAGREEMENT_GAP:
+        score = min(max(score, config.HUMAN_THRESHOLD), config.AI_THRESHOLD)
+    return round(min(max(score, 0.0), 1.0), 4)
 
 
 def score_to_label(score: float) -> tuple[str, str]:
@@ -85,12 +91,33 @@ def score_to_label(score: float) -> tuple[str, str]:
     think if they got it on their own work. That question is the whole
     milestone.
     """
-    # TODO: replace this — thresholds are in config.py
-    if score >= config.AI_THRESHOLD:
-        return "ai", "PLACEHOLDER — write the high-confidence AI label."
-    if score <= config.HUMAN_THRESHOLD:
-        return "human", "PLACEHOLDER — write the high-confidence human label."
-    return "unsure", "PLACEHOLDER — write the unsure label."
+    # Strictly beyond a threshold to get a confident label; a score sitting
+    # exactly on one stays unsure. Every score in 0–1 lands in exactly one.
+    if score > config.AI_THRESHOLD:
+        return "ai", LABEL_AI
+    if score < config.HUMAN_THRESHOLD:
+        return "human", LABEL_HUMAN
+    return "unsure", LABEL_UNSURE
+
+
+LABEL_HUMAN = (
+    "We think this was probably written by a person. "
+    "Our check found the patterns we usually see in human writing."
+)
+
+LABEL_UNSURE = (
+    "We can't tell whether this was written by a person or with AI help. "
+    "That's common, and it is not an accusation. Plain, careful, or formal "
+    "writing often lands here. If you wrote this yourself, nothing changes "
+    "for you, and you can ask for a person to review it."
+)
+
+LABEL_AI = (
+    "Our check found strong signs that this may have been written with AI. "
+    "Automated checks like ours can be wrong, especially about simple or very "
+    "clear writing. If you wrote this yourself, please ask for a review and a "
+    "person will look at it."
+)
 
 
 def label_ranges() -> list[tuple[str, str]]:

@@ -72,7 +72,18 @@ WEIGHT_STYLE_SIGNAL = 0.5
 # that decide who pays for it.
 
 HUMAN_THRESHOLD = 0.35
-AI_THRESHOLD = 0.65
+AI_THRESHOLD = 0.75
+
+# If the two signals are further apart than this, the combined score is held
+# inside the unsure band. See scoring.combine_signals.
+DISAGREEMENT_GAP = 0.4
+
+# Input limits for POST /submit — criterion 5.
+MAX_TEXT_CHARS = 10_000
+# After this many bad inputs from one creator_id, their next submission is
+# blocked. Counted over BAD_INPUT_WINDOW_MINUTES so a block doesn't last forever.
+MAX_BAD_INPUTS = 3
+BAD_INPUT_WINDOW_MINUTES = 10
 
 # ⚠️ One thing that catches people out in Milestone 5. A weighted average can
 # only land between its two inputs — so while `style_signal` is still the stub
