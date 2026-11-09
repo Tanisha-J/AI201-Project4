@@ -72,7 +72,7 @@ WEIGHT_STYLE_SIGNAL = 0.5
 # that decide who pays for it.
 
 HUMAN_THRESHOLD = 0.35
-AI_THRESHOLD = 0.75
+AI_THRESHOLD = 0.85
 
 # If the two signals are further apart than this, the combined score is held
 # inside the unsure band. See scoring.combine_signals.
